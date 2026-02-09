@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Infinit Indumentaria | Estilo Urbano</title>
+  <meta name="description" content="Ropa urbana premium. Remeras, buzos y sneakers. Envíos a todo Tucumán."/>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { 
+        fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] },
+        animation: { 'bounce-slow': 'bounce 3s infinite' }
+      }}
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .logo-font { font-family: 'Space Grotesk', sans-serif; }
+
+    /* FILM GRAIN */
+    body::after {
+      content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; opacity: 0.04;
+      background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noiseFilter%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.65%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23noiseFilter)%27/%3E%3C/svg%3E');
+    }
+
+    /* SCROLLBAR & PROGRESS */
+    #scroll-progress { position: fixed; top: 0; left: 0; height: 3px; background: #2dd4bf; width: 0%; z-index: 10000; transition: width 0.1s ease-out; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
+
+    /* TEXTO & EFECTOS */
+    .text-outline { -webkit-text-stroke: 1px rgba(0,0,0,0.3); color: transparent; }
+    .dark .text-outline { -webkit-text-stroke: 1px rgba(255,255,255,0.3); }
+    .magnetic-btn { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: inline-block; }
+    
+    /* ANIMACIÓN REVEAL ON SCROLL (Aparecer hacia arriba) */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(50px); /* Empieza 50px más abajo */
+      transition: all 1s cubic-bezier(0.5, 0, 0, 1); /* Movimiento lento y elegante */
+      will-change: opacity, transform;
+    }
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0); /* Sube a su posición original */
+    }
+
+    @keyframes popScale { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    .pop-anim { animation: popScale 0.3s ease-in-out; color: #2dd4bf; }
+
+    /* SELECTORES */
+    .color-circle { width: 32px; height: 32px; border-radius: 9999px; border: 2px solid transparent; transition: all 0.2s; }
+    .color-circle.selected { border-color: white; box-shadow: 0 0 0 3px rgba(0,0,0,0.3); transform: scale(1.15); }
+    .dark .color-circle.selected { border-color: #18181b; box-shadow: 0 0 0 3px rgba(255,255,255,0.8); }
+    .size-btn { min-width: 44px; height: 44px; border: 1px solid #d4d4d4; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .dark .size-btn { border-color: #3f3f46; color: #e4e4e7; }
+    .size-btn:hover { border-color: #000; } 
+    .dark .size-btn:hover { border-color: #fff; }
+    .size-btn.selected { background-color: #000; color: white; border-color: #000; }
+    .dark .size-btn.selected { background-color: #fff; color: black; border-color: #fff; }
+
+    /* MÓVIL & MODAL */
+    @media (max-width: 640px) {
+      .mobile-btn-container { margin-top: 20px; width: 100%; }
+      .modal-content-scroll { padding-bottom: 40px; overscroll-behavior: contain; }
+      .color-circle { width: 40px; height: 40px; }
+      .size-btn { min-width: 48px; height: 48px; }
+    }
+
+    /* FIX PARA IPHONE: Obliga al navegador a soltar el control horizontal */
+    #slider-track {
+      touch-action: pan-y pinch-zoom;
+    }
+    
+    /* Evita que la imagen se ponga azul al mantener apretado */
+    #slider-track img {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+  </style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 dark:bg-black dark:text-zinc-100 transition-colors duration-300">
+
+  <div id="preloader" class="fixed inset-0 z-[9999] bg-white dark:bg-black flex items-center justify-center transition-opacity duration-500">
+    <div class="flex flex-col items-center animate-pulse">
+      <div class="logo-font text-4xl sm:text-5xl font-semibold tracking-tighter text-zinc-900 dark:text-white">Infinit</div>
+      <div class="mt-2 text-sm text-zinc-500 font-medium tracking-widest uppercase">Cargando estilo...</div>
+    </div>
+  </div>
+
+  <div id="scroll-progress"></div>
+
+  <nav id="main-nav" class="fixed w-full top-0 z-50 transition-all duration-300 bg-transparent border-b border-transparent">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="h-16 sm:h-20 flex items-center justify-between">
+        <div class="flex items-center gap-4 sm:gap-16">
+          <div class="logo-font text-3xl sm:text-4xl font-semibold tracking-tighter text-zinc-900 dark:text-white">Infinit</div>
+          <div class="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            <a href="#" class="hover:text-black dark:hover:text-white transition-colors magnetic-btn">Inicio</a>
+            <a href="#tienda" class="hover:text-black dark:hover:text-white transition-colors magnetic-btn">Tienda</a>
+            <a href="#faq" class="hover:text-black dark:hover:text-white transition-colors magnetic-btn">Dudas</a>
+            <a href="#footer" class="hover:text-black dark:hover:text-white transition-colors magnetic-btn">Contacto</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button id="wishlist-toggle-btn" class="p-2 rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors relative magnetic-btn">
+            <svg id="wishlist-icon-nav" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            <span id="wishlist-count" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
+          </button>
+          <button id="theme-toggle" class="p-2 rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors magnetic-btn">
+            <svg id="sun-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            <svg id="moon-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+          </button>
+          <div class="relative cursor-pointer magnetic-btn" id="cart-icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-zinc-700 dark:text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4m8-4a4 4 0 00-8 0 4 4 0 008 0zM5 9h14l1 12H4L5 9z" /></svg>
+            <div id="cart-count" class="absolute -top-1.5 -right-1.5 bg-teal-600 text-white text-[10px] font-mono w-4 h-4 flex items-center justify-center rounded-full">0</div>
+          </div>
+          <button id="menu-toggle" class="md:hidden text-zinc-700 dark:text-zinc-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+      </div>
+      <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 absolute left-0 right-0 shadow-lg">
+        <div class="px-4 py-6 flex flex-col gap-6 text-base font-medium text-zinc-700 dark:text-zinc-300">
+          <a href="#" class="hover:text-black dark:hover:text-white">Inicio</a>
+          <a href="#tienda" class="hover:text-black dark:hover:text-white">Tienda</a>
+          <a href="#faq" class="hover:text-black dark:hover:text-white">Preguntas</a>
+          <a href="#footer" class="hover:text-black dark:hover:text-white">Contacto</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="relative min-h-[70vh] sm:min-h-screen flex items-center pt-10 sm:pt-20 px-4 sm:px-6">
+    <div class="absolute inset-0 bg-[url('https://i.imgur.com/cUiqrXn.png')] bg-cover bg-center"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-zinc-900/90 to-transparent dark:from-black/95"></div>
+    <div class="relative max-w-7xl mx-auto text-white w-full">
+      <div class="max-w-xl mx-auto sm:mx-0 text-center sm:text-left">
+        <div class="uppercase tracking-widest text-teal-400 text-xs sm:text-sm mb-3 sm:mb-4 reveal-on-scroll">HOMBRE 2026</div>
+       <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight logo-font leading-tight mb-4 sm:mb-6 text-white drop-shadow-[0_5px_5px_rgba(0,0,0,0.9)] reveal-on-scroll" style="transition-delay: 100ms;">
+  Vestí Aquí<br>
+  Tu Estilo
+</h1>
+        <p class="text-base sm:text-lg md:text-xl text-teal-400 max-w-lg mx-auto sm:mx-0 mb-6 sm:mb-10 reveal-on-scroll" style="transition-delay: 200ms;">Estilo minimalista y urbano para destacar en cada momento.</p>
+        <a href="#tienda" class="inline-flex items-center gap-3 sm:gap-4 mx-auto sm:mx-0 bg-white text-zinc-900 px-6 sm:px-9 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-medium hover:bg-zinc-100 transition-all active:scale-95 text-sm sm:text-base reveal-on-scroll " style="transition-delay: 300ms;">Explorar colección <span class="group-hover:translate-x-1 transition-transform ">→</span></a>
+      </div>
+    </div>
+  </div>
+
+  <section id="tienda" class="py-12 sm:py-24 bg-white dark:bg-black transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-10 px-2 sm:px-0">
+        <div>
+          <div class="uppercase text-teal-600 dark:text-teal-400 text-xs sm:text-sm font-medium tracking-widest reveal-on-scroll">CATÁLOGO</div>
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter logo-font text-zinc-900 dark:text-white reveal-on-scroll">Prendas esenciales</h2>
+        </div>
+        <div class="text-zinc-500 dark:text-zinc-400 text-sm sm:text-base mt-2 sm:mt-0 reveal-on-scroll" id="products-count-label">Mostrando todos</div>
+      </div>
+
+      <div class="mb-8 reveal-on-scroll">
+        <div class="relative max-w-md">
+          <input type="text" id="search-input" placeholder="Buscar producto..." class="w-full bg-zinc-100 dark:bg-zinc-900 border-none rounded-xl py-3 pl-12 pr-4 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-teal-500 placeholder-zinc-500 transition-all">
+          <svg class="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+     <div class="flex flex-wrap gap-2 sm:gap-3 mb-10 pb-2 overflow-x-auto reveal-on-scroll" id="category-filters">
+        <button class="filter-btn active px-5 py-2.5 rounded-full border border-zinc-200 text-sm font-medium transition-colors whitespace-nowrap" data-category="all">Todo</button>
+        <button class="filter-btn px-5 py-2.5 rounded-full border border-zinc-200 text-sm font-medium transition-colors whitespace-nowrap text-teal-400" data-category="remeras">Remeras</button>
+        <button class="filter-btn px-5 py-2.5 rounded-full border border-zinc-200 text-sm font-medium transition-colors whitespace-nowrap text-teal-400" data-category="jeans">Jeans</button>
+        <button class="filter-btn px-5 py-2.5 rounded-full border border-zinc-200 text-sm font-medium transition-colors whitespace-nowrap text-teal-400" data-category="bermudas">Bermudas</button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-8" id="products-grid"></div>
+    </div>
+  </section>
+
+  <section id="faq" class="py-16 bg-zinc-50 dark:bg-zinc-900 border-y border-zinc-200 dark:border-zinc-800 transition-colors">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-semibold logo-font text-zinc-900 dark:text-white mb-2 reveal-on-scroll">Preguntas Frecuentes</h2>
+        <p class="text-zinc-500 dark:text-zinc-400 reveal-on-scroll">Todo lo que necesitás saber antes de comprar.</p>
+      </div>
+      <div class="space-y-4 reveal-on-scroll">
+        <details class="group bg-white dark:bg-black rounded-2xl p-6 shadow-sm cursor-pointer border border-zinc-100 dark:border-zinc-800"><summary class="flex justify-between items-center font-medium text-lg text-zinc-900 dark:text-white">¿Cómo realizo una compra?<span class="transition-transform group-open:rotate-180">▼</span></summary><p class="text-zinc-600 dark:text-zinc-300 mt-4 leading-relaxed">Es muy fácil. Elegís tus productos, los agregás al carrito y al finalizar tocás "Hacer Encargo". Eso te abrirá WhatsApp con tu pedido listo para enviar.</p></details>
+        <details class="group bg-white dark:bg-black rounded-2xl p-6 shadow-sm cursor-pointer border border-zinc-100 dark:border-zinc-800"><summary class="flex justify-between items-center font-medium text-lg text-zinc-900 dark:text-white">¿Qué medios de pago aceptan?<span class="transition-transform group-open:rotate-180">▼</span></summary><p class="text-zinc-600 dark:text-zinc-300 mt-4 leading-relaxed">Aceptamos Transferencia Bancaria (con descuento), Efectivo contra entrega (solo en San Miguel) y Tarjetas.</p></details>
+        <details class="group bg-white dark:bg-black rounded-2xl p-6 shadow-sm cursor-pointer border border-zinc-100 dark:border-zinc-800"><summary class="flex justify-between items-center font-medium text-lg text-zinc-900 dark:text-white">¿Hacen envíos?<span class="transition-transform group-open:rotate-180">▼</span></summary><p class="text-zinc-600 dark:text-zinc-300 mt-4 leading-relaxed">Sí, hacemos envíos a domicilio a todo Tucumán. Si tu compra supera los $60.000, ¡el envío es GRATIS!</p></details>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer" class="bg-zinc-900 dark:bg-zinc-950 text-zinc-400 py-16 border-t border-zinc-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+        
+        <div class="md:col-span-5 space-y-6 reveal-on-scroll">
+          <div class="logo-font text-white text-4xl font-bold tracking-tighter">Infinit</div>
+          <p class="text-lg leading-relaxed text-zinc-500 max-w-sm">
+            Ropa urbana diseñada para destacar. Calidad premium y estilo minimalista para el día a día en San Miguel de Tucumán.
+          </p>
+          
+          <div class="pt-2">
+             <a href="https://www.instagram.com/infinit_.indumentaria" target="_blank" class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-zinc-800 text-white hover:bg-white hover:text-black transition-all duration-300 group hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-1 border border-zinc-700 hover:border-white">
+              <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 2C4.462 2 2 4.462 2 7.5V16.5C2 19.538 4.462 22 7.5 22H16.5C19.538 22 22 19.538 22 16.5V7.5C22 4.462 19.538 2 16.5 2H7.5ZM16.5 4C18.433 4 20 5.567 20 7.5V16.5C20 18.433 18.433 20 16.5 20H7.5C5.567 20 4 18.433 4 16.5V7.5C4 5.567 5.567 4 7.5 4H16.5ZM12 7C9.239 7 7 9.239 7 12C7 14.761 9.239 17 12 17C14.761 17 17 14.761 17 12C17 9.239 14.761 7 12 7ZM12 9C13.657 9 15 10.343 15 12C15 13.657 13.657 15 12 15C10.343 15 9 13.657 9 12C9 10.343 10.343 9 12 9ZM18.25 7C18.25 7.69 17.69 8.25 17 8.25C16.31 8.25 15.75 7.69 15.75 7C15.75 6.31 16.31 5.75 17 5.75C17.69 5.75 18.25 6.31 18.25 7Z"/></svg>
+              <span class="font-medium tracking-wide text-sm">Instagram</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 reveal-on-scroll" style="transition-delay: 100ms;">
+          <h3 class="text-white font-semibold text-lg mb-6 tracking-wide">Explorar</h3>
+          <ul class="space-y-4">
+            <li><a href="#" class="hover:text-teal-400 transition-colors">Inicio</a></li>
+            <li><a href="#tienda" class="hover:text-teal-400 transition-colors">Ver Catálogo</a></li>
+            <li><a href="#faq" class="hover:text-teal-400 transition-colors">Preguntas Frecuentes</a></li>
+            <li><a href="https://wa.me/3816045734" target="_blank" class="hover:text-teal-400 transition-colors">Contacto Directo</a></li>
+          </ul>
+        </div>
+
+        <div class="md:col-span-4 reveal-on-scroll" style="transition-delay: 200ms;">
+          <h3 class="text-white font-semibold text-lg mb-6 tracking-wide">Unite al Club</h3>
+          <p class="mb-4 text-sm text-zinc-500">Suscribite para recibir los nuevos drops y descuentos exclusivos.</p>
+          <div class="flex gap-2">
+            <input type="email" placeholder="Tu email" class="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 w-full text-white outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 placeholder-zinc-600 transition-all">
+            <button class="bg-white text-black font-bold px-5 py-3 rounded-xl hover:bg-teal-400 hover:text-black transition-colors">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="border-t border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-sm text-zinc-600 text-center md:text-left">
+          <p>© 2026 Infinit Indumentaria. Todos los derechos reservados.</p>
+        </div>
+        
+        <div class="flex items-center gap-3 opacity-60">
+           <div class="text-[10px] font-bold uppercase tracking-wider border border-zinc-700 rounded px-2 py-1 text-zinc-400">Efectivo</div>
+           <div class="text-[10px] font-bold uppercase tracking-wider border border-zinc-700 rounded px-2 py-1 text-zinc-400">Transferencia</div>
+           <div class="text-[10px] font-bold uppercase tracking-wider border border-zinc-700 rounded px-2 py-1 text-zinc-400">Tarjetas</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <a href="https://wa.me/3816045734?text=Hola!%20Quiero%20consultar%20por%20una%20prenda" target="_blank" class="wa-float fixed bottom-6 left-4 sm:bottom-8 sm:left-8 bg-[#25D366] text-white w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-2xl z-50 hover:scale-110 active:scale-95 transition-all">
+    <svg class="w-8 h-8 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg>
+  </a>
+
+  <div id="cart-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800">
+      <div class="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-zinc-900 dark:text-white">Tu carrito <span id="cart-items-count" class="text-zinc-400 text-sm ml-2 font-normal">0 items</span></h2>
+        <button id="close-cart" class="text-zinc-400 hover:text-black dark:hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div id="cart-items" class="max-h-[50vh] overflow-y-auto px-6 py-6 space-y-6"></div>
+      <div class="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-6 py-6">
+        <div class="flex justify-between items-end mb-6">
+          <div class="text-sm text-zinc-500">Total estimado</div>
+          <div id="cart-total" class="text-3xl font-bold logo-font text-zinc-900 dark:text-white">$0</div>
+        </div>
+        <button id="checkout-whatsapp" class="w-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-black py-4 rounded-2xl font-medium transition-transform active:scale-[0.98]">HACER EL ENCARGO AQUÍ →</button>
+        <div id="continue-shopping" class="text-center mt-4 text-zinc-500 cursor-pointer text-sm hover:underline">Seguir comprando</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="product-detail-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[110] p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-zinc-900 w-[95%] sm:w-full max-w-5xl h-[85vh] sm:h-auto sm:max-h-[90vh] rounded-2xl sm:rounded-3xl relative flex flex-col sm:flex-row overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+      
+      <button id="close-detail-modal" class="absolute top-4 right-4 z-50 bg-white/50 dark:bg-black/50 p-2 rounded-full backdrop-blur-md hover:scale-110 transition-transform">
+        <svg class="w-6 h-6 text-black dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div class="h-[40vh] sm:h-auto sm:w-1/2 bg-zinc-100 dark:bg-zinc-950 relative flex items-center justify-center bg-zinc-50 overflow-hidden group">
+        <div id="slider-track" class="flex transition-transform duration-300 ease-out h-full w-full"></div>
+        <button id="prev-slide" class="absolute left-4 p-3 bg-white/80 dark:bg-black/80 rounded-full shadow hover:scale-110 hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity z-10"><svg class="w-5 h-5 text-black dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <button id="next-slide" class="absolute right-4 p-3 bg-white/80 dark:bg-black/80 rounded-full shadow hover:scale-110 hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity z-10"><svg class="w-5 h-5 text-black dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+        <div id="slider-dots" class="absolute bottom-4 flex gap-2 justify-center w-full z-10"></div>
+      </div>
+
+      <div class="flex-1 sm:w-1/2 flex flex-col modal-content-scroll overflow-y-auto">
+        <div class="p-6 sm:p-8 h-full">
+            <h2 id="modal-product-name" class="text-2xl sm:text-3xl font-semibold text-zinc-900 dark:text-white mb-2 leading-tight"></h2>
+            <div id="modal-product-price" class="text-2xl sm:text-3xl font-bold logo-font text-teal-600 dark:text-teal-400 mb-6"></div>
+            
+            <div class="mb-6"><div class="text-sm font-medium text-zinc-500 mb-2">Color</div><div class="flex flex-wrap gap-3" id="color-options"></div></div>
+            <div class="mb-2"><div class="text-sm font-medium text-zinc-500 mb-2">Talle</div><div class="flex flex-wrap gap-2" id="size-options"></div></div>
+            
+            <div class="mb-6">
+                <button id="toggle-size-guide" class="text-sm text-zinc-500 underline hover:text-teal-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Ver Guía de Talles
+                </button>
+                <div id="size-guide-table" class="hidden mt-2 bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-sm">
+                    <table class="w-full text-left text-zinc-600 dark:text-zinc-300">
+                        <thead><tr class="border-b border-zinc-200 dark:border-zinc-700"><th>Talle</th><th>Ancho</th><th>Largo</th></tr></thead>
+                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                            <tr><td class="py-1">S</td><td>50 cm</td><td>70 cm</td></tr>
+                            <tr><td class="py-1">M</td><td>52 cm</td><td>72 cm</td></tr>
+                            <tr><td class="py-1">L</td><td>54 cm</td><td>74 cm</td></tr>
+                            <tr><td class="py-1">XL</td><td>56 cm</td><td>76 cm</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mobile-btn-container sm:static sm:p-0 sm:bg-transparent sm:border-0 sm:shadow-none mt-4">
+                <div class="flex flex-col sm:flex-row gap-4 w-full">
+                    <div class="flex items-center justify-between sm:block">
+                         <div class="text-sm font-medium text-zinc-500 mb-0 sm:mb-2 mr-4 sm:mr-0 sm:block hidden">Cantidad</div>
+                         <div class="flex border border-zinc-200 dark:border-zinc-700 rounded-full w-full sm:w-fit text-zinc-900 dark:text-white h-12 sm:h-auto items-center">
+                            <button id="decrease-qty" class="w-12 h-full hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-l-full">-</button>
+                            <input id="quantity" type="number" value="1" min="1" class="w-full sm:w-12 text-center bg-transparent font-medium border-x border-zinc-200 dark:border-zinc-700 h-full" readonly>
+                            <button id="increase-qty" class="w-12 h-full hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-r-full">+</button>
+                        </div>
+                    </div>
+                    <button id="add-to-cart-detail" class="flex-1 bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-black py-4 sm:py-5 rounded-full font-medium text-base sm:text-lg transition-transform active:scale-[0.98] shadow-lg">AGREGAR AL CARRITO</button>
+                </div>
+            </div>
+
+            <div id="stock-info" class="mb-6 mt-4 text-center sm:text-left"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 hidden bg-zinc-900 dark:bg-white text-white dark:text-black px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-[200]">
+    <div class="bg-green-500 rounded-full p-1"><svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/></svg></div>
+    <div><div class="font-medium">¡Agregado al carrito!</div><div class="text-zinc-400 dark:text-zinc-500 text-sm">Revisa tu carrito para continuar</div></div>
+  </div>
+
+  <div id="fullscreen-viewer" class="fixed inset-0 bg-black z-[200] hidden flex items-center justify-center">
+      <button id="close-viewer" class="absolute top-4 right-4 text-white p-4 z-50">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <img id="fullscreen-image" src="" class="max-w-full max-h-full object-contain p-2">
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
