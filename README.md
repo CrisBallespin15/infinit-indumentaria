@@ -3,7 +3,7 @@
 Tienda online de ropa masculina desarrollada con HTML, CSS y JavaScript.
 
 ## 🌐 Ver el sitio en vivo
-[Hacer click aquí]([https://crisballespin15.github.io/indumentaria-infinita](https://infinit-indumentaria.netlify.app/))
+[Hacer click aquí](https://infinit-indumentaria.netlify.app/)
 
 ## 🛠️ Tecnologías usadas
 - HTML5
