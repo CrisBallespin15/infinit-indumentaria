@@ -1,4 +1,4 @@
-# 🛍️ Indumentaria Infinita
+# 🛍️ iNFINIT INDUMENTARIA
 
 Tienda online de ropa masculina desarrollada con HTML, CSS y JavaScript.
 
